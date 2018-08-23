@@ -15,7 +15,7 @@ export class HomeComponent implements OnInit, OnDestroy
   constructor(private ticketService: TicketService) {}
 
   ngOnInit() {
-    this.ticketService.listAll().subscribe(resp => {
+    this.listAllSubscription = this.ticketService.listAll().subscribe(resp => {
       this.ticketService.tickets$.next(resp);
     });
   }

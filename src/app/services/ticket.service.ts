@@ -15,7 +15,7 @@ export class TicketService
     this.tickets$ = new BehaviorSubject<Ticket[]>([]);
   }
 
-  public listAll(): Observable<Array<Ticket>> {
+  public listAll(): Observable<Ticket[]> {
     return this.http.get<Array<Ticket>>(`${environment.baseUrl}${environment.ticketApi}${environment.version}/tickets`);
   }
 }
