@@ -4,7 +4,12 @@
 
 export const environment = {
   production: false,
-  baseUrl: 'http://localhost:4200'
+  baseUrl: 'http://localhost:4200',
+  projectApi: '/tms-projects',
+  userApi: '/tms-users',
+  ticketApi: '/tms-tickets',
+  commentApi: '/tms-comments',
+  version: 'v1'
 };
 
 /*

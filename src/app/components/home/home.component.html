@@ -1,3 +1,18 @@
-<p>
-  home works!
-</p>
+<table class="table">
+  <thead>
+  <tr>
+    <th>#Id</th>
+    <th>Title</th>
+    <th>Assigned To</th>
+    <th>Created</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let ticket of tickets | async">
+    <td>{{ticket.ticketId}}</td>
+    <td>{{ticket.ticketTitle}}</td>
+    <td>{{ticket.user.firstName}}</td>
+    <td>{{ticket.crteTmst | date}}</td>
+  </tr>
+  </tbody>
+</table>
