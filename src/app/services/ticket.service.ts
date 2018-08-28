@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Ticket } from '../models/ticket.model';
@@ -9,13 +9,42 @@ import { environment } from '../../environments/environment';
 })
 export class TicketService
 {
-  tickets$: BehaviorSubject<Ticket[]>;
+  private tickets$: BehaviorSubject<Ticket[]>;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private ngZone: NgZone) {
     this.tickets$ = new BehaviorSubject<Ticket[]>([]);
+    this.publishAll();
+    this.publishFromSSE();
   }
 
-  public listAll(): Observable<Ticket[]> {
-    return this.http.get<Array<Ticket>>(`${environment.baseUrl}${environment.ticketApi}${environment.version}/tickets`);
+  private listAll(): Observable<Ticket[]> {
+    return this.http
+      .get<Ticket[]>(`${environment.baseUrl}${environment.ticketApi}${environment.version}/tickets`);
+  }
+
+  private publishAll(): void {
+    this.listAll().subscribe(resp => {
+        this.tickets$.next(resp);
+    });
+  }
+
+  private publishFromSSE(): void {
+    const eventSource = new EventSource(
+      `${environment.baseUrl}${environment.ticketApi}${environment.version}/activity`);
+
+    eventSource.onmessage = (evt) => {
+      console.log(JSON.parse(evt.data));
+      this.listAll().subscribe(resp => {
+        this.ngZone.run(() => this.tickets$.next(resp));
+      });
+    };
+    eventSource.onerror = () => {
+      this.tickets$.error(console.log('EventSource Error!'));
+      eventSource.close();
+    };
+  }
+
+  get tickets(): Observable<Ticket[]> {
+    return this.tickets$.asObservable();
   }
 }

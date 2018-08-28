@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { TicketService } from '../../services/ticket.service';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Ticket } from '../../models/ticket.model';
 
 @Component({
@@ -8,23 +8,11 @@ import { Ticket } from '../../models/ticket.model';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit, OnDestroy
+export class HomeComponent
 {
-  private listAllSubscription: Subscription;
-
-  constructor(private ticketService: TicketService) {}
-
-  ngOnInit() {
-    this.listAllSubscription = this.ticketService.listAll().subscribe(resp => {
-      this.ticketService.tickets$.next(resp);
-    });
-  }
+  constructor(private ticketService: TicketService, private ngZone: NgZone) {}
 
   get tickets(): Observable<Ticket[]> {
-    return this.ticketService.tickets$.asObservable();
-  }
-
-  ngOnDestroy() {
-    this.listAllSubscription.unsubscribe();
+    return this.ticketService.tickets;
   }
 }
