@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Ticket } from '../models/ticket.model';
 import { environment } from '../../environments/environment';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class TicketService
   constructor(private http: HttpClient, private ngZone: NgZone) {
     this.tickets$ = new BehaviorSubject<Ticket[]>([]);
     this.publishAll();
-    this.publishFromSSE();
+    this.publishFromWS();
+    // this.publishFromSSE();
   }
 
   private listAll(): Observable<Ticket[]> {
@@ -23,9 +25,35 @@ export class TicketService
   }
 
   private publishAll(): void {
-    this.listAll().subscribe(resp => {
+/*
+    this.listAll().pipe(
+      tap((resp: Ticket[]) => {
         this.tickets$.next(resp);
+    }));
+*/
+    this.listAll().subscribe((resp: Ticket[]) => {
+      this.tickets$.next(resp);
     });
+  }
+
+  /**
+   * Publish the latest data when receiving update event from server (WebSocket)
+   */
+  private publishFromWS(): void {
+    const webSocket = new WebSocket(`${environment.wsUrl}${environment.ticketApi}/feed`);
+
+    webSocket.onmessage = evt => {
+      console.log(JSON.parse(evt.data));
+/*
+      this.listAll().pipe(
+        tap((resp: Ticket[]) => {
+          this.ngZone.run(() => this.tickets$.next(resp));
+      }));
+*/
+      this.listAll().subscribe((resp: Ticket[]) => {
+        this.ngZone.run(() => this.tickets$.next(resp));
+      });
+    };
   }
 
   private publishFromSSE(): void {
@@ -34,9 +62,14 @@ export class TicketService
 
     eventSource.onmessage = (evt) => {
       console.log(JSON.parse(evt.data));
+/*
       this.listAll().subscribe(resp => {
         this.ngZone.run(() => this.tickets$.next(resp));
       });
+*/
+      this.listAll().pipe(tap(resp => {
+        this.ngZone.run(() => this.tickets$.next(resp));
+      }));
     };
     eventSource.onerror = () => {
       this.tickets$.error(console.log('EventSource Error!'));

@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  wsUrl: 'ws://localhost:9082',
   baseUrl: 'http://localhost:9082',
   projectApi: '/tms-projects',
   userApi: '/tms-users',
